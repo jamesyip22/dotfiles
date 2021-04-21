@@ -1,0 +1,36 @@
+SHELL         := /bin/bash
+VERSION       := $(shell cat version)
+VERSION_PARTS := $(subst ., ,$(VERSION))
+MAJOR         := $(word 1,$(VERSION_PARTS))
+MINOR         := $(word 2,$(VERSION_PARTS))
+PATCH         := $(word 3,$(VERSION_PARTS))
+
+NEXT_MAJOR    := $(shell echo $$(($(MAJOR)+1)))
+NEXT_MINOR    := $(shell echo $$(($(MINOR)+1)))
+NEXT_PATCH    := $(shell echo $$(($(PATCH)+1)))
+
+IMAGE         :=
+
+build:
+        docker build . -t $(IMAGE):$(VERSION)
+        @docker tag $(IMAGE):$(VERISON) $(IMAGE):latest
+
+push:
+        docker push $(IMAGE):$(VERSION)
+        docker push $(IMAGE):latest
+
+major: major-bump build push
+minor: minor-bump build push
+patch: patch-bump build push
+
+major-bump:
+        @echo $(NEXT_MAJOR).$(MINOR).$(PATCH) > version
+
+minor-bump:
+        @echo $(MAJOR).$(NEXT_MINOR).$(PATCH) > version
+
+patch-bump:
+        @echo $(MAJOR).$(MINOR).$(NEXT_PATCH) > version
+
+showver:
+        @echo $(VERSION)
